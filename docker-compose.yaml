@@ -1,0 +1,48 @@
+# docker-compose -f .\docker-compose.yaml build
+# docker-compose -f .\docker-compose.yaml up
+# docker-compose -f "docker-compose.yaml" down
+version: '3'
+
+services:
+
+  nginx:
+    hostname: metrigi-toplanan
+    container_name: ncin
+    build: 
+      context: nginx
+      dockerfile: Dockerfile
+    ports:
+      - 80:80
+
+#  docker service create --replicas 1 --name my-prometheus
+#     --mount type=bind,source=C:/tmp/prometheus.yml,destination=/etc/prometheus/prometheus.yml
+#     --publish published=9090,target=9090,protocol=tcp
+#     prom/prometheus
+  prometheus:
+    container_name: cprom
+    hostname: host-prom
+    build: 
+      context: prometheus
+      dockerfile: Dockerfile
+    privileged: true
+    links:
+    - nginx
+    ports:
+     - 90:9090
+
+#   docker run -d \
+#       -p 3000:3000 \
+#       --name=grafana \
+#       -e "GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource" \
+#       grafana/grafana
+  grafana:
+    container_name: cgrafana
+    hostname: host-grafana
+    image: grafana/grafana
+    privileged: true
+    environment:
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    links:
+    - prometheus
+    ports:
+     - 3000:3000
