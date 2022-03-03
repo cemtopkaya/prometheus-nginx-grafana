@@ -22,9 +22,11 @@ rule_files:
 # A scrape configuration containing exactly one endpoint to scrape:
 # Here it's Prometheus itself.
 scrape_configs:
+# https şemalı bir adresi hedef listesine eklemek için > https://stackoverflow.com/a/68440506
   - job_name: 'repl-metrics'
+    scheme: https
     static_configs:
-      - targets: ['https://express-tutorial.cemt.repl.co/metrics']
+      - targets: ['express-tutorial.cemt.repl.co']
 # - job_name: hede
 #   metric_relabel_configs:
 #     - source_labels: [__name__]
