@@ -19,18 +19,18 @@ services:
 #     --publish published=9090,target=9090,protocol=tcp
 #     prom/prometheus
 
-  prometheus-slave:
-    container_name: cprom-slave
-    hostname: host-prom
-    build: 
-      context: prometheus-slave
-      dockerfile: Dockerfile
-    privileged: true
-    ports:
-    - 9090:9090
-    depends_on:
-    - nginx
-    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus", "--web.console.libraries=/usr/share/prometheus/console_libraries", "--web.console.templates=/usr/share/prometheus/consoles", "--web.enable-lifecycle"]
+  # prometheus-slave:
+  #   container_name: cprom-slave
+  #   hostname: host-prom
+  #   build: 
+  #     context: prometheus-slave
+  #     dockerfile: Dockerfile
+  #   privileged: true
+  #   ports:
+  #   - 9090:9090
+  #   depends_on:
+  #   - nginx
+  #   command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus", "--web.console.libraries=/usr/share/prometheus/console_libraries", "--web.console.templates=/usr/share/prometheus/consoles", "--web.enable-lifecycle"]
     # command: 
     #   - "--config.file=/etc/prometheus/prometheus.yml"
     #   - "--storage.tsdb.path=/prometheus"
@@ -39,20 +39,20 @@ services:
     #   - "--web.enable-lifecycle"
 
 
-  # prometheus-master:
-  #   container_name: cprom-master
-  #   hostname: host-prom
-  #   build: 
-  #     context: prometheus-master
-  #     dockerfile: Dockerfile
-  #   privileged: true
-  #   links:
-  #   - prometheus-slave
-  #   depends_on:
-  #   - prometheus-slave
-  #   ports:
-  #   - 9100:9090
-  #   command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus", "--web.console.libraries=/usr/share/prometheus/console_libraries", "--web.console.templates=/usr/share/prometheus/consoles", "--web.enable-lifecycle"]
+  prometheus-master:
+    container_name: cprom-master
+    hostname: host-prom
+    build: 
+      context: prometheus-master
+      dockerfile: Dockerfile
+    privileged: true
+    # links:
+    # - prometheus-slave
+    # depends_on:
+    # - prometheus-slave
+    ports:
+    - 9100:9090
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus", "--web.console.libraries=/usr/share/prometheus/console_libraries", "--web.console.templates=/usr/share/prometheus/consoles", "--web.enable-lifecycle"]
 
   # windows komutu:
   # docker run -d -p 3000:3000 --name=grafana -e "GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource" grafana/grafana
@@ -65,8 +65,8 @@ services:
   #     grafana/grafana
   grafana:
     # network_mode: host
-    networks:
-      - fortinet
+    # networks:
+    #   - fortinet
     container_name: cgrafana
     hostname: host-grafana   
     image: grafana/grafana
@@ -85,7 +85,7 @@ services:
     ports:
     - 3000:3000
 
-networks:
-  fortinet:
-    external: true
-    name: fortinet
+# networks:
+#   fortinet:
+#     external: true
+#     name: fortinet
