@@ -52,6 +52,36 @@ services:
     ports:
     - 9999:3000
 
+
+#-------------------------------------------
+#
+#   Uygulama Metriği için NGINX-EXPORTER
+#
+#-------------------------------------------
+# docker run -p 9113:9113 nginx/nginx-prometheus-exporter:0.10.0 -nginx.scrape-uri=http://<nginx>:8080/stub_status
+  nginx:
+    hostname: nginx
+    container_name: ncin
+    image: nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - 9080:80
+      - 9081:8080
+
+  nginx-exporter:
+    hostname: nginxporter
+    container_name: ncinporter
+    image: nginx/nginx-prometheus-exporter:0.10.0
+    ports:
+      - 9113:9113
+    command: -nginx.scrape-uri=http://host.docker.internal:9081/stub_status
+
+#-------------------------------------------
+#
+#    Sistem Metriği için NODE-EXPORTER
+#
+#-------------------------------------------
 # docker run -d \
 #   --net="host" \
 #   --pid="host" \

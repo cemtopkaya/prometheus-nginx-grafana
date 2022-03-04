@@ -1,5 +1,32 @@
-## Bağlantılar
+# Ne var burada?
 
+## Hangi uygulama hangi adreste?
+Kimler hangi portlarda çalışıyor:
+- Grafana : http://localhost:9999/ (Kullanıcı Adı: admin, Şifre: admin)
+- Prometheus : http://localhost:9090/
+- Node-exporter : http://localhost:9100/
+
+## Hangi dosya ne ile ilgili?
+- `grafana/datasources.yml` : Grafana içinde Prometheus sunucusunu bulması için.
+- `grafana/dashboards/dashboard.yml` : Grafana'ya dashboard'ların dizinini içerir.
+- `grafana/dashboards/node-exporter-full_rev26-1860.json` : `dashboards` Dizini içindeki göstergelerin (json dosyalarının) Grafana içinde görünmesi için [1860](https://grafana.com/grafana/dashboards/1860) ID'li **Node Exporter Full** isimli göstergenin [json](https://grafana.com/api/dashboards/1860/revisions/26/download) dosyasıdır.
+
+## Nginx'in metrikleri nasıl çekilir? ([kaynak](https://www.tecmint.com/enable-nginx-status-page/))
+Nginx, metrikleri dışarıya sunmak için   modülünü kullanır. Nginx çalıştığında ayarlar dosyasındaki varsayılan duruma göre bu modülü aktif veya pasif eder. 
+Eğer modül faal değilse ise komutun çıktısı `with-http_stub_status_module` olacaktır:
+```shell
+$ nginx -V 2>&1 | grep -o with-http_stub_status_module
+with-http_stub_status_module
+```
+
+Eğer modül faal ise:
+```shell
+$ nginx -V 2>&1 | grep -o with-http_stub_status_module
+
+```
+
+
+## Bağlantılar
 - [prometheus.yaml Ayar dosyasında olabilecek job tanımlarına dair örnekler](https://github.com/prometheus/prometheus/blob/0a8d28ea932ed18e000c2f091200a46d2b62bac4/config/testdata/conf.good.yml)
 
 Prometheus'u Ayaklandırmak
