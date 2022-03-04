@@ -2,7 +2,52 @@
 
 - [prometheus.yaml Ayar dosyasında olabilecek job tanımlarına dair örnekler](https://github.com/prometheus/prometheus/blob/0a8d28ea932ed18e000c2f091200a46d2b62bac4/config/testdata/conf.good.yml)
 
+Prometheus'u Ayaklandırmak
 
+```shell
+docker run --rm 
+  -v ${PWD}/p4.yml:/etc/prometheus/prometheus.yml
+  -p 9090:9090
+  --name cpromc
+  prom/prometheus 
+    --config.file=/etc/prometheus/prometheus.yml 
+    --storage.tsdb.path=/prometheus 
+    --web.console.libraries=/usr/share/prometheus/console_libraries 
+    --web.console.templates=/usr/share/prometheus/consoles 
+    --log.level=debug
+
+Tek satır >>> 
+docker run -v ${PWD}/p4.yml:/etc/prometheus/prometheus.yml:rw -p 9090:9090 --name cpromc --rm prom/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --web.console.libraries=/usr/share/prometheus/console_libraries --web.console.templates=/usr/share/prometheus/consoles --log.level=debug
+```
+
+prometheus.yml
+```yaml
+global:
+  scrape_interval: 5s
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+
+  - job_name: "sabit-dosya"
+    scheme: http
+    metrics_path: '/metrics.html'
+    static_configs:
+    - targets: ["host.docker.internal:5500"]
+
+  - job_name: "prometheus"
+    # metrics_path defaults to '/metrics'
+    scheme: https
+    static_configs:
+      - targets: ["prometheus.demo.do.prometheus.io"]
+
+  - job_name: "repl"
+    scheme: https
+    static_configs:
+    - targets: ["express-tutorial.cemt.repl.co"]
+    tls_config:
+      insecure_skip_verify: true
+```
 
 ## nginx Exporter
 Prometheus sunucusu ve metrik üreten bir nginx sunucusu ayakalnıyor.
