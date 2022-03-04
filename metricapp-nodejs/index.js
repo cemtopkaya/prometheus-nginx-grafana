@@ -1,52 +1,53 @@
-const express = require('express');
+const express = require('express')
 /*
  Imports the express library.
  This is necessary to have an express server.
 */
-//const bodyParser = require('body-parser');  // Node.js body parsing middleware.
+const bodyParser = require('body-parser') // Node.js body parsing middleware.
 
-const app = express(); // Creates an app for your servers client
+const WEB_SERVER_PORT = 3000
+const app = express() // Creates an app for your servers client
 
-app.use(bodyParser.json()); // Express modules / packages
-app.use(bodyParser.urlencoded({ extended: true })); // Express modules / packages
-app.use(express.static('public')); // load the files that are in the public directory
+app.use(bodyParser.json()) // Express modules / packages
+app.use(bodyParser.urlencoded({ extended: true })) // Express modules / packages
+app.use(express.static('public')) // load the files that are in the public directory
 
-let data = [0, 10, 20, 30, 40, 0, 10]
+const data = [0, 10, 20, 30, 40, 0, 10]
 let idx = -1
-app.get('/metrics', (req, res) => {
-    console.log("istek yapan: " + req.socket.remoteAddress)
-    let pp = `# HELP go_gc_duration_seconds A summary of the pause duration of garbage collection cycles.
-# TYPE go_gc_duration_seconds summary
-go_gc_duration_seconds{quantile="0"} 8.369e-05
-go_gc_duration_seconds{quantile="0.25"} 0.000107152`
-
-    let response2 = `# HELP node_cpu_seconds_total Seconds the CPUs spent in each mode..
+app.get('/counter', (req, res) => {
+    console.log('istek yapan: ' + req.socket.remoteAddress)
+    
+    const resp = `
+# HELP node_cpu_seconds_total Seconds the CPUs spent in each mode..
 # TYPE node_cpu_seconds_total counter
-node_cpu_seconds_total{cpu="0",mode="idle"} ${data[++idx]}`
+node_cpu_seconds_total{cpu="0",mode="idle"} ${data[++idx]}
+`
 
-    res.set('Content-Type', 'text/plain');
-    res.send(pp);
-});
+    res.set('Content-Type', 'text/plain')
+    res.send(resp)
+})
 
-app.get('/', (req, res) => { // When someone tries to visit the root or / directory of your website it also imports the variables req and res
+app.get('/', (req, res) => {
+    // When someone tries to visit the root or / directory of your website it also imports the variables req and res
     // req is short for the request, includes the url, headers and more that the client has send to the server
     // res is the response you will send. includes sending files, redirects, codes, and more
 
-    res.sendFile(process.cwd() + '/public/index.html'); // This sends a file to the client, Often on repl.it, you will get an error about a root directory is requires, this is why, you may need to add '/home/runner/<replname>' then the directory, in this case, 'public/index.html'
-});
+
+    res.sendFile(process.cwd() + '/public/index.html') // This sends a file to the client, Often on repl.it, you will get an error about a root directory is requires, this is why, you may need to add '/home/runner/<replname>' then the directory, in this case, 'public/index.html'
+})
 
 app.get('/error', (req, res) => { // When someone tries to visit the '/error' directory
     res.sendStatus(500) // Sends status codes to the client. find them https://www.restapitutorial.com/httpstatuscodes.html here
     res.send('Hello!') // send html to the client
     /*
-        This will give an error as once something has been sent to the client, you can't send another. 
-        This applies to most 'res' functions
-    */
+          This will give an error as once something has been sent to the client, you can't send another.
+          This applies to most 'res' functions
+      */
 })
 
 app.get('/req', (req, res) => { // When someone tries to visit the '/req' directory. please note that the '/***' can be changed to anything you wish as long as it complies as a url path.
     console.log(req.query) // this logs all query strings such as '?hello=hi&ping=pong' you can get these through req.query.hello or req.query.ping. Remember, always send headers back to the client. ie:
-    res.json(req.query) //send json to the client
+    res.json(req.query) // send json to the client
 })
 
 app.get('/res', (req, res) => {
@@ -58,7 +59,7 @@ app.get('/res', (req, res) => {
     res.json('{"hello":"hi","ping":"pong"}')
 
     res.sendStatus(200)
-    //using res.send(200) is deprecated and will terminate the nodejs in future.
+    // using res.send(200) is deprecated and will terminate the nodejs in future.
 
     res.sendFile('/home/runner/public/index.html')
 
@@ -100,4 +101,4 @@ app.get('/*', (req, res) => {
     // used for 404 if no other get functions are triggered
 })
 
-app.listen(3000, () => console.log('server started'));
+app.listen(WEB_SERVER_PORT, () => console.log(`server started on http://localhost:${WEB_SERVER_PORT}`))

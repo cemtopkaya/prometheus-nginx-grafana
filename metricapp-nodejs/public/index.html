@@ -1,7 +1,37 @@
 Metrik üretecek nodejs uygulamasıdır.
 
+<pre>
+global:
+scrape_interval: 5s
+
+scrape_configs:
+
+- job_name: "sabit-dosya"
+  metrics_path: '/metrics.html'
+  static_configs:
+  - targets: ["host.docker.internal:3000"]
+
+  - job_name: "counter"
+  metrics_path: '/counter'
+  static_configs:
+  - targets: ["host.docker.internal:3000"]
+
+  - job_name: "gauge"
+  metrics_path: '/gauge'
+  static_configs:
+  - targets: ["host.docker.internal:3000"]
+
+  - job_name: "summary"
+  metrics_path: '/summary'
+  static_configs:
+  - targets: ["host.docker.internal:3000"]
+</pre>
+
 <h1>/sabit-metric.html</h1>
 Sabit metrik değerlerine erişebilmek için sabit-metrci.html dosyası istenebilir.
 
-<h1>/gauge</h1>
+<h1><a href="/counter">/counter</a></h1>
+counter tipinde metrikler üretmek için
+
+<h1><a href="/gauge">/gauge</a></h1>
 gauge tipinde metrikler üretmek için
