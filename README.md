@@ -1,128 +1,61 @@
 # Ne var burada?
+Grafana üstünde sistem ve uygulama metriklerinin gösterimini sağlayan bir konteyner yığını var.
+- Grafana
+- Prometheus
+- Node-exporter
+- Nginx-eporter
+
+Bunu sağlamak için aşağıdaki uygulamaları ve aralarındaki ilişkileri tanımlayan `docker-compose.yml` dosyasını ayaklandırmak için `docker-compose up` komutunu çalıştırmak yeterli.
+
+```shell
+$ docker-compose up 
+```
+
+![](.vscode/readme-images/2022-03-05-06-41-05.png)
+
+### node-exporter
+Konteynerlerin çalıştığı Linux makinasının sistem metriklerini toplar.
+![](.vscode/readme-images/2022-03-05-06-56-29.png)
+
+### nginx-exporter
+Nginx sunucusunun metriklerini prometheus metrikleri halinde sunar.
+
+### nginx
+En meşhur web sunucularındandır (IIS, Apache, Tomcat gibi). Bir web uygulaması yayımlasaydık, uygulama metriklerini (sisteme giriş yapmış anlık ziyaretçi sayısı, yorum yapılan makale sayısı, beğenilerin puanlarına göre bir metrik vs.) yayımlardık. Ancak nginx de bir uygulama olduğu için onun metriklerini nginx-exporter ile sunup, prometheus ile çekip, grafana ile görüntüleyeceğiz. 
+
+![](.vscode/readme-images/2022-03-05-06-49-42.png)
+
 
 ## Hangi uygulama hangi adreste?
 Kimler hangi portlarda çalışıyor:
 - Grafana : http://localhost:9999/ (Kullanıcı Adı: admin, Şifre: admin)
 - Prometheus : http://localhost:9090/
 - Node-exporter : http://localhost:9100/
+- Nginx-eporter : http://localhost:9113/
 
 ## Hangi dosya ne ile ilgili?
 - `grafana/datasources.yml` : Grafana içinde Prometheus sunucusunu bulması için.
 - `grafana/dashboards/dashboard.yml` : Grafana'ya dashboard'ların dizinini içerir.
 - `grafana/dashboards/node-exporter-full_rev26-1860.json` : `dashboards` Dizini içindeki göstergelerin (json dosyalarının) Grafana içinde görünmesi için [1860](https://grafana.com/grafana/dashboards/1860) ID'li **Node Exporter Full** isimli göstergenin [json](https://grafana.com/api/dashboards/1860/revisions/26/download) dosyasıdır.
+- `grafana/dashboards/nginx-dashboar.json` : nginx Metriklerini görüntülemek için hazırlanmış dashboard. Varsayılan olarak metrikleri görüntüleyecektir. 
 
 ## Nginx'in metrikleri nasıl çekilir? ([kaynak](https://www.tecmint.com/enable-nginx-status-page/))
 Nginx, metrikleri dışarıya sunmak için   modülünü kullanır. Nginx çalıştığında ayarlar dosyasındaki varsayılan duruma göre bu modülü aktif veya pasif eder. 
-Eğer modül faal değilse ise komutun çıktısı `with-http_stub_status_module` olacaktır:
+Eğer modül faal ise komutun çıktısında modüllerin satırında kırmızı renkle işaretlenmiş olarak `--with-http_stub_status_module` metni gelecektir:
 ```shell
-$ nginx -V 2>&1 | grep -o with-http_stub_status_module
-with-http_stub_status_module
+$ nginx -V 2>&1 | grep --color with-http_stub_status_module
 ```
 
-Eğer modül faal ise:
+nginx Konteynerinin adı ncin olduğu için:
 ```shell
-$ nginx -V 2>&1 | grep -o with-http_stub_status_module
-
+docker exec -it ncin nginx -V 2>&1 | grep --color with-http_stub_status_module
 ```
+![](.vscode/readme-images/2022-03-05-07-00-41.png)
 
+Bu modül aktif edilmişse `nginx/nginx.conf` dosyasında `localhost:9080/metrics` adresine gelindiğinde metrikleri sunan `stub_status` fonksiyonu çalıştırılması için ayar yapılmalı: 
 
-## Bağlantılar
-- [prometheus.yaml Ayar dosyasında olabilecek job tanımlarına dair örnekler](https://github.com/prometheus/prometheus/blob/0a8d28ea932ed18e000c2f091200a46d2b62bac4/config/testdata/conf.good.yml)
+![](.vscode/readme-images/2022-03-05-07-02-43.png)
 
-Prometheus'u Ayaklandırmak
+nginx-exporter çalışırken ona hangi nginx sunucusuna gideceği bilgisini konteyner başlatma komutlarında veriyoruz:
 
-```shell
-docker run --rm 
-  -v ${PWD}/p4.yml:/etc/prometheus/prometheus.yml
-  -p 9090:9090
-  --name cpromc
-  prom/prometheus 
-    --config.file=/etc/prometheus/prometheus.yml 
-    --storage.tsdb.path=/prometheus 
-    --web.console.libraries=/usr/share/prometheus/console_libraries 
-    --web.console.templates=/usr/share/prometheus/consoles 
-    --log.level=debug
-
-Tek satır >>> 
-docker run -v ${PWD}/p4.yml:/etc/prometheus/prometheus.yml:rw -p 9090:9090 --name cpromc --rm prom/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --web.console.libraries=/usr/share/prometheus/console_libraries --web.console.templates=/usr/share/prometheus/consoles --log.level=debug
-```
-
-prometheus.yml
-```yaml
-global:
-  scrape_interval: 5s
-
-# A scrape configuration containing exactly one endpoint to scrape:
-# Here it's Prometheus itself.
-scrape_configs:
-
-  - job_name: "sabit-dosya"
-    scheme: http
-    metrics_path: '/metrics.html'
-    static_configs:
-    - targets: ["host.docker.internal:5500"]
-
-  - job_name: "prometheus"
-    # metrics_path defaults to '/metrics'
-    scheme: https
-    static_configs:
-      - targets: ["prometheus.demo.do.prometheus.io"]
-
-  - job_name: "repl"
-    scheme: https
-    static_configs:
-    - targets: ["express-tutorial.cemt.repl.co"]
-    tls_config:
-      insecure_skip_verify: true
-```
-
-## nginx Exporter
-Prometheus sunucusu ve metrik üreten bir nginx sunucusu ayakalnıyor.
-Nginx sunucusu metrics isimli dosyayı 80 portundan sanki bir uygulamanın metriklerini sunuyor gibi yayımlıyor.
-Nginx 80 dahili portunda çalışıyor ve hostun 80 portundan erişilebiliyor.
-http://localhost:80/metrics
-
-
-## PROMETHEUS
-Prometheus varsayılan olarak `/metrics` adresine gider ve eğer farklı adrese gitmesi istenirse `metric_path` alanı job içinde tanımlanmalıdır:
-
-```yaml
-- job_name: "ornek job"
-  metrics_path: /sunucu-adresine/ek-olacak/metrik-adresi
-  static_configs:
-    targets: ["sunucu-adresi.com", "192.168.1.19", ...]
-```
-
-Prometheus konteyneri içeride 8090 portunda çalışırken dışarıda 90 portundan erişilebilir. 
-http://localhost:90
-
-## Docker Komutları
-Tüm konteynerleri >
-Yansıları derlemek için:
-
-```shell
-docker-compose -f .\docker-compose.yaml build
-```
-
-Çalıştırmak için
-```shell
-docker-compose -f .\docker-compose.yaml up
-```
-
-Durdurmak için:
-
-```shell
-docker-compose -f .\docker-compose.yaml down
-```
-## GRAFANA
-Sadece Grafayı ayaklandırmak için:
-```shell
- docker run -d \
-     -p 3000:3000 \
-     --name=grafana \
-     -e "GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource" \
-     grafana/grafana
-```
-
-Grafana'yı başlatmak için http://localhost:3000 adresine (kullanıcı adı ve şifresi "admin" ile) girilir ve Data Source kısmına Prometheus eklenerek Prometheus'un konteynerler arasında erişilebileceği URL adresi (http://cprom:9090) yazılarak "Save & Test" düğmesine basılarak eklenir.
-
+![](.vscode/readme-images/2022-03-05-07-07-03.png)

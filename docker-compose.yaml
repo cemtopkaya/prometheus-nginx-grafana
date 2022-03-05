@@ -75,7 +75,7 @@ services:
     image: nginx/nginx-prometheus-exporter:0.10.0
     ports:
       - 9113:9113
-    command: -nginx.scrape-uri=http://host.docker.internal:9081/stub_status
+    command: -nginx.scrape-uri=http://host.docker.internal:9080/metrics
 
 #-------------------------------------------
 #
